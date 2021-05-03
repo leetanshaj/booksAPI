@@ -1,0 +1,15 @@
+E1 = 'Day Limit'
+E2 = 'OTP SENT'
+E3 = 'Verification Success'
+E4 = 'Invalid OTP'
+E5 = 'Resent OTP'
+E6 = 'INVALID Number! OTP NOT SENT'
+E7 = 'Invalid Signature'
+EXE = 'Exception'
+E9 = [True,'Email and Mobile Already Registered']
+E10 = [True,'Email Already Registered']
+E11 = [True,'Mobile Already Registered']
+E12 = [False,'Both Mobile And Number Unregistered']
+E13 = {"error": "* Marked Fields are compulsory"}
+E14 = {"error": "Invalid Mobile Number"}
+E15 = {"error": "Invalid Data Type"}
