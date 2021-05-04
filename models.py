@@ -2,6 +2,7 @@ from flask import jsonify, request
 import pymongo
 from pymongo import MongoClient
 from errorCodes import *
+import os
 # from app import app
 # import sys
 # sys.path.append('/Users/anshajgoyal/Documents/GitHub/booksAPI')
@@ -19,17 +20,16 @@ class User:
 
     def signup(self):
         print(request.form)
-        # with app.app_context():
         compulsoryDetails = {
-                    "email": request.form.get('email',None),
-                    "phone": request.form.get('phone',None),
-                    "fname": request.form.get('fname',None),
-                    "password": request.form.get('password',None)
+                    "email": request.json.get('email',None),
+                    "phone": request.json.get('phone',None),
+                    "fname": request.json.get('fname',None),
+                    "password": request.json.get('password',None)
             }
         if not all(compulsoryDetails.values()):
             return E13
-        compulsoryDetails.update({"mname": request.form.get('mname',"None"),
-                    "lname": request.form.get('lname',"None")})
+        compulsoryDetails.update({"mname": request.json.get('mname',"None"),
+                    "lname": request.json.get('lname',"None")})
         print(compulsoryDetails)
         # if not isinstance(compulsoryDetails['phone'],int):
             # return E15
@@ -37,7 +37,7 @@ class User:
         # del compulsoryDetails['phone']
         if not all(list(map(lambda x: isinstance(x, str), list(compulsoryDetails.values())))):
             return E15
-        compulsoryDetails['phone'] = phoneNumber
+        # compulsoryDetails['phone'] = phoneNumber
         if not all([self.UserVerification.phoneNumberValidator(phoneNumber), len(str(phoneNumber))==10]):
             return E14
         existing = self.UserVerification.acctExists(compulsoryDetails['email'], phoneNumber)
@@ -62,6 +62,16 @@ class User:
         if not self.UserVerification.insert_otp_db.find_one({"phone":compulsoryDetails['phone']}):
             return E6
         return self.UserVerification.verifyOTP(compulsoryDetails)
+    
+    def private(self):
+        token = request.headers.get('AUTHORIZATION', None)
+        # print(request.headers.__dict__)
+        print(token)
+        if not token: return E16
+        if not (isinstance(token, str)): print(71);return E17
+        if not self.UserVerification.checkValidJwt(token): print(72);return E17
+        if not self.UserVerification.checkActiveSession(token): return E18
+        return E19
 
         
             

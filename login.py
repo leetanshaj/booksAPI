@@ -1,10 +1,12 @@
-from flask import Flask
+from flask import Flask, Response
 from pymongo import MongoClient
 from twilio.rest import Client
 from errorCodes import *
 import hashlib
 import re
 import bson
+import jwt
+from uuid import uuid1
 def md5(string):
 	kk=hashlib.md5(str(string).encode())
 	return kk.hexdigest()
@@ -13,14 +15,16 @@ if __name__ != '__main__':
     from app import app
     app.config['MONGO_DBNAME'] = 'Cluster0'
     app.config['MONGO_URI'] = 'mongodb+srv://anshaj:anshaj123@testbook.ut1ij.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+    # import tests
     app.config['TWILIO_ACCOUNT_SID'] = 'AC0992ac9ab87933946c013431328a1456'
     app.config['TWILIO_AUTH_TOKEN'] = '014ed5e8efa4347ed9964ca3125695e1'
     app.config['sms_limit'] = 3
     app.config['signature'] = md5
     app.config['signupDB'] = 'signup'
-    app.config['insertOTPAcct'] = 'insertOTPAcct'
+    app.config['insertOTPAcctDB'] = 'insertOTPAcct'
+    app.config['activeSessionsDB'] = 'activeSessions'
 
-
+Response()
 class UserVerification:
 
     def __init__(self):
@@ -32,10 +36,12 @@ class UserVerification:
         self.dayLimit = {}
         self.client = client
         self.db = MongoClient(app.config['MONGO_URI'])
-        dbName = app.config['insertOTPAcct']
+        dbName = app.config['insertOTPAcctDB']
         self.insert_otp_db = self.db[dbName][dbName]
         dbName = app.config['signupDB']
         self.signup_db = self.db[dbName][dbName]
+        dbName = app.config['activeSessionsDB']
+        self.activeSessions = self.db[dbName][dbName]
 
     def sendOtp(self,details: dict):
         client = self.client
@@ -72,18 +78,28 @@ class UserVerification:
         try:
             verification_check = client.verify.services(sid).verification_checks.create(to = f'+91{mobileNumber}', code = OTP)
             if verification_check._properties['valid']:
-                del self.dayLimit[mobileNumber]
-                details = self.insert_otp_db.find_one_and_delete({"phone": mobileNumber})
-                details['verified'] = True
-                self.signup_db.insert(details)
-                del details['_id']
-                return details
+                return self.registerAccountinDB(mobileNumber)
             else:
                 return E4
         except Exception as e:
             print(e)
             return EXE
     
+    def registerAccountinDB(self,mobileNumber):
+        del self.dayLimit[mobileNumber]
+        details = self.insert_otp_db.find_one_and_delete({"phone": mobileNumber})
+        details['verified'] = True
+        self.signup_db.insert(details)
+        details['userId'] = str(details.pop('_id'))
+        token = self.createjwtToken(details['userId'])
+        details['activeSessions'] = [token]
+        self.activeSessions.insert(details)
+        del details['_id']
+        del details['activeSessions']
+        details['auth'] = token
+        return details
+
+
     def insertOTPacct(self,details):
         db = self.insert_otp_db
         userId = str(db.insert(details))
@@ -120,6 +136,28 @@ class UserVerification:
         otpVerified = False
         details.update({"email":email, "password":password, "phone": phone, "verified": otpVerified})
         return self.sendOtp(details)
+
+    def createjwtToken(self, userId):
+        secretKey = app.config['SECRET_KEY']
+        encoded = jwt.encode({'userId': userId, 'guid': str(uuid1())}, secretKey, algorithm='HS256').decode()
+        return encoded
+    
+    def checkValidJwt(self, token):
+        secretKey = app.config['SECRET_KEY']
+        print(secretKey)
+        try:
+            valid = bool(jwt.decode(token, key = '12', verify = True))
+        except jwt.exceptions.InvalidSignatureError:
+            print("Invalid Sign")
+            valid = False
+        return valid
+    
+    def checkActiveSession(self, token):
+        if not self.activeSessions.find_one({"activeSessions": token}): return False
+        return True
+
+
+
         
         
     

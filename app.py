@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, make_response
 app = Flask(__name__)
 if __name__ == '__main__':
     import models
@@ -6,6 +6,21 @@ if __name__ == '__main__':
     
 
 app.config['SECRET_KEY'] = "V1"
+
+
+
+
+@app.route('/', methods = ['GET'])
+def k():
+    data = {'he': 'Ansh'}
+    headers = {'Access_Key': 'dsfg'}
+    return make_response(data, headers)
+
+
+
+
+
+
 @app.route('/signup', methods = ['POST'])
 def signup():
     return m.signup()
@@ -14,10 +29,16 @@ def signup():
 def verify():
     return m.otpverify()
 
+@app.route('/private', methods = ['POST'])
+def prive():
+    return m.private()
+
 # u = models.User()
 # print(u)
 
 if __name__ == "__main__":
     m = models.User()
+    import os
     app.run(debug=True)
     print(m)
+    os.system('clear')
