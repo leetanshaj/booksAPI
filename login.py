@@ -146,7 +146,7 @@ class UserVerification:
         secretKey = app.config['SECRET_KEY']
         print(secretKey)
         try:
-            valid = bool(jwt.decode(token, key = '12', verify = True))
+            valid = bool(jwt.decode(token, key = secretKey, verify = True))
         except jwt.exceptions.InvalidSignatureError:
             print("Invalid Sign")
             valid = False
