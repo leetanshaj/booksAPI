@@ -17,3 +17,5 @@ E16 = {"error": "Authorization Missing"}
 E17 = {"error": "Invalid Authorization"}
 E18 = {"error": "Not Logged In"}
 E19 = {"message": "Logged In"}
+E20 = {"error": "Account Does Not Exist"}
+E21 = {"error": "Invalid Password"}

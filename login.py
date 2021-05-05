@@ -155,6 +155,23 @@ class UserVerification:
     def checkActiveSession(self, token):
         if not self.activeSessions.find_one({"activeSessions": token}): return False
         return True
+    
+    def login(self, password, email = None, phoneNumber = None):
+        query = {"email":email} if email else {"phone": phoneNumber}
+        result = self.signup_db.find_one(query)
+        print(result)
+        if not result: return E20
+        if password != result['password']: return E21
+        token = self.createjwtToken(str(result['_id']))
+        json = self.activeSessions.find_one_and_update(query, {"$push":{"activeSessions":token}})
+        query['fname'] = json['fname']
+        query['auth'] = token
+        query['userId'] = json['userId']
+        return query
+
+
+
+
 
 
 

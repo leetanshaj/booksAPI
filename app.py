@@ -34,6 +34,9 @@ def verify():
 def prive():
     return m.private()
 
+@app.route('/login', methods=['POST'])
+def login():
+    return m.login()
 # u = models.User()
 # print(u)
 
