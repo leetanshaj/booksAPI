@@ -7,6 +7,7 @@ import re
 import bson
 import jwt
 from uuid import uuid1
+import time
 def md5(string):
 	kk=hashlib.md5(str(string).encode())
 	return kk.hexdigest()
@@ -24,7 +25,6 @@ if __name__ != '__main__':
     app.config['insertOTPAcctDB'] = 'insertOTPAcct'
     app.config['activeSessionsDB'] = 'activeSessions'
 
-Response()
 class UserVerification:
 
     def __init__(self):
@@ -50,6 +50,7 @@ class UserVerification:
         mobileNumber = details['phone']
         if self.dayLimit.get(mobileNumber) == None:
             self.dayLimit[mobileNumber] = {'count':1, 'signature' : signature(mobileNumber)}
+            details['timestamp'] = time.time()
             self.insertOTPacct(details)
             E = E2
         else:
@@ -89,6 +90,7 @@ class UserVerification:
         del self.dayLimit[mobileNumber]
         details = self.insert_otp_db.find_one_and_delete({"phone": mobileNumber})
         details['verified'] = True
+        details['timestamp'] = time.time()
         self.signup_db.insert(details)
         details['userId'] = str(details.pop('_id'))
         token = self.createjwtToken(details['userId'])
@@ -104,11 +106,18 @@ class UserVerification:
         db = self.insert_otp_db
         userId = str(db.insert(details))
         details.update({"userId": userId})
-        # del details['password']
         return details
 
-
-
+    def genderVerify(self, gender):
+        if gender.upper() not in ['MALE', 'FEMALE', 'NA']:
+            return False
+        return True
+    
+    def dobVerify(self, dob):
+        regex = re.compile('^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$')
+        if regex.match(dob) is not None:
+            return True
+        return False
     def acctExists(self, email: str, mobileNumber: int):
         db = self.signup_db
         if db.find_one({"email":email.upper()}):
@@ -153,8 +162,11 @@ class UserVerification:
         return valid
     
     def checkActiveSession(self, token):
-        if not self.activeSessions.find_one({"activeSessions": token}): return False
-        return True
+        userId = self.activeSessions.find_one({"activeSessions": token})
+        if userId:
+            return User(True, userId, token)
+        return False
+    
     
     def login(self, password, email = None, phoneNumber = None):
         query = {"email":email} if email else {"phone": phoneNumber}
@@ -169,6 +181,26 @@ class UserVerification:
         query['userId'] = json['userId']
         return query
 
+    def deleteSession(self, current_user):
+        token = current_user.token
+        self.activeSessions.find_one_and_update({"activeSessions":token}, {"$pull":{"activeSessions":token}})
+        return E23
+
+class User:
+    def __init__(self, isauthenticated, userId, token):
+        self.isauthenticated = isauthenticated
+        self.userId = userId
+        self.token = token
+    def is_authenticated(self):
+        return self.isauthenticated
+    def is_active(self):
+        return True
+    def is_anonymous(self):
+        return False
+    def get_id(self):
+        return self.userId
+    def auth(self, auth):
+        return self.token
 
 
 

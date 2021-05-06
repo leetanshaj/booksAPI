@@ -24,19 +24,24 @@ class User:
                     "email": request.json.get('email',None),
                     # "phone": request.json.get('phone',None),
                     "fname": request.json.get('fname',None),
-                    "password": request.json.get('password',None)
+                    "password": request.json.get('password',None),
+                    "gender": request.json.get('gender', None)
             }
         phoneNumber = request.json.get('phone',None)
         compulsoryDetails['phone'] = None if phoneNumber==None else str(phoneNumber)
         if not all(compulsoryDetails.values()):
             return E13
         compulsoryDetails.update({"mname": request.json.get('mname',"None"),
-                    "lname": request.json.get('lname',"None")})
+                                  "lname": request.json.get('lname',"None"),
+                                  "dob"  : request.json.get("dob", "None")
+                                  })
         print(compulsoryDetails)
         if not all(list(map(lambda x: isinstance(x, str), list(compulsoryDetails.values())))):
             return E15
-        if not all([self.UserVerification.phoneNumberValidator(phoneNumber), len(str(phoneNumber))==10]):
+        if not all([self.UserVerification.phoneNumberValidator(phoneNumber), len(str(phoneNumber))==10], self.UserVerification.genderVerify(details['gender'])):
             return E14
+        if not (compulsoryDetails['dob']!="None" and self.UserVerification.dobVerify(compulsoryDetails['dob'])):
+            return E22
         existing = self.UserVerification.acctExists(compulsoryDetails['email'], phoneNumber)
         if existing[0]:
             return existing[1]
@@ -59,13 +64,6 @@ class User:
             return E6
         return self.UserVerification.verifyOTP(compulsoryDetails)
     
-    def private(self):
-        token = request.headers.get('AUTHORIZATION', None)
-        if not token: return E16
-        if not (isinstance(token, str)): print(71);return E17
-        if not self.UserVerification.checkValidJwt(token): print(72);return E17
-        if not self.UserVerification.checkActiveSession(token): return E18
-        return E19
     
     def login(self):
         email = request.json.get('email',None)
@@ -82,6 +80,18 @@ class User:
                 return E15
         else: return E15
         
+    def private(self):
+        token = request.headers.get('AUTHORIZATION', None)
+        if not token: return E16
+        if not (isinstance(token, str)): print(71);return E17
+        if not self.UserVerification.checkValidJwt(token): print(72);return E17
+        active = self.UserVerification.checkActiveSession(token)
+        if not active: return E18
+        E19.update(active)
+        return E19
+
+    def logout(self, current_user):
+        return self.UserVerification.deleteSession(current_user)
             
 if __name__ != "__main__":
     from app import app
