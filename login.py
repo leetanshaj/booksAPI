@@ -16,7 +16,7 @@ if __name__ != '__main__':
     from app import app
     app.config['MONGO_DBNAME'] = 'Cluster0'
     app.config['MONGO_URI'] = 'mongodb+srv://anshaj:anshaj123@testbook.ut1ij.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
-    # import tests
+    import tests
     app.config['TWILIO_ACCOUNT_SID'] = 'AC0992ac9ab87933946c013431328a1456'
     app.config['TWILIO_AUTH_TOKEN'] = '014ed5e8efa4347ed9964ca3125695e1'
     app.config['sms_limit'] = 3
@@ -114,7 +114,7 @@ class UserVerification:
         return True
     
     def dobVerify(self, dob):
-        regex = re.compile('^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$')
+        regex = re.compile(r'^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$')
         if regex.match(dob) is not None:
             return True
         return False

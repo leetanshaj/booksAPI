@@ -51,6 +51,12 @@ def prive():
 def logout():
     return m.logout(current_user)
 
+
+@app.route('/addBook', methods = ['POST'])
+@login_required
+def insertbook():
+    return m.insertBook()
+
 if __name__ == "__main__":
     m = models.User()
     import os

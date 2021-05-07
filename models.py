@@ -10,12 +10,14 @@ import os
 # from login import *
 # sys.path.pop()
 from login import UserVerification
+from books import Books
 
 class User:
 
     def __init__(self):
         self.client = MongoClient(app.config['MONGO_URI'])
         self.UserVerification = UserVerification()
+        self.Books = Books()
         return
 
     def signup(self):
@@ -92,6 +94,36 @@ class User:
 
     def logout(self, current_user):
         return self.UserVerification.deleteSession(current_user)
+
+
+    def insertBook(self):
+        if not request.json: return E25
+        get = request.json.get
+        keys = {str:["bookName" ,"authorNames"] ,int: ["MRP" ,"rental" ,"securityDeposit" ,"timePeriod" ,"qtyAvailable" ],dict :["otherDetails"]}
+        data = {j: get(j, None) for i in keys for j in keys[i]}
+        # return data
+        # print(data.values())
+        if not all(data.values()): return E13
+        # locals().update(data)
+        # print(locals())
+        # print(bookName)
+        for i in keys:
+            # print(i)
+            if not all(map(lambda x: isinstance(data[x], i), keys[i])):
+                return E15
+        return self.Books.insertBook(data)
+        # if not all(map(lambda x: isinstance(exec(x), str), keys['str']) or map(lambda x: isinstance(exec(x), int), keys['int'])): return E15
+        
+
+        
+        # bookName: str, 
+        # authorNames: str, 
+        # bookPriceInMRP: int, 
+        # rentalPrice: int, 
+        # securityDeposit: int, 
+        # timePeriod: int, 
+        # qtyAvailable: int, 
+        # details: dict
             
 if __name__ != "__main__":
     from app import app
