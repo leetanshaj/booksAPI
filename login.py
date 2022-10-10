@@ -15,10 +15,10 @@ def md5(string):
 if __name__ != '__main__':
     from app import app
     app.config['MONGO_DBNAME'] = 'Cluster0'
-    app.config['MONGO_URI'] = 'mongodb+srv://anshaj:anshaj123@testbook.ut1ij.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+    app.config['MONGO_URI'] = 'mongodb+srv://'
     import tests
-    app.config['TWILIO_ACCOUNT_SID'] = 'AC0992ac9ab87933946c013431328a1456'
-    app.config['TWILIO_AUTH_TOKEN'] = '014ed5e8efa4347ed9964ca3125695e1'
+    app.config['TWILIO_ACCOUNT_SID'] = ''
+    app.config['TWILIO_AUTH_TOKEN'] = ''
     app.config['sms_limit'] = 3
     app.config['signature'] = md5
     app.config['signupDB'] = 'signup'
